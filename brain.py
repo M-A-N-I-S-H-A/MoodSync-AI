@@ -1,13 +1,16 @@
 import google.genai as genai
+import streamlit as st
 
-# Setup - Paste your Gemini API Key here
-client = genai.Client(api_key="Paste your Gemini API Key here")
+# This line tells the app: "Go to Streamlit's Secret vault and grab the key"
+api_key = st.secrets["GEMINI_API_KEY"]
+
+client = genai.Client(api_key=api_key)
 
 def get_mood(user_text):
     try:
-        model_id = "gemini-2.5-flash"
+        # Note: Use "gemini-2.0-flash" as the standard stable ID
+        model_id = "gemini-2.0-flash"
         
-        # Updated prompt with your custom mood categories
         prompt = f"""
         Analyze the emotional vibe of this text: "{user_text}"
         Return ONLY one of these exact words: 
@@ -22,7 +25,3 @@ def get_mood(user_text):
         return response.text.strip().upper()
     except Exception as e:
         return "ERROR"
-
-if __name__ == "__main__":
-    # Test your new moods
-    print(f"Test Mood: {get_mood('I am so in love with this music!')}")
