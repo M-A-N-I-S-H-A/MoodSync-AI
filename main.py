@@ -1,72 +1,53 @@
-import customtkinter as ctk
+import streamlit as st
 import brain
-import player
+import os
 from datetime import datetime
+import urllib.parse
 
-# Basic App Settings
-ctk.set_appearance_mode("Dark")
-ctk.set_default_color_theme("blue")
+# 1. Page Configuration
+st.set_page_config(page_title="MoodSync AI", page_icon="🎵")
 
-class MoodSyncApp(ctk.CTk):
-    def __init__(self):
-        super().__init__()
+# 2. Styling
+st.title("🎵 MoodSync AI: Tamil Edition")
+st.markdown("### How are you feeling right now?")
 
-        # Window Setup
-        self.title("MoodSync AI - Music Edition")
-        self.geometry("500x450")
+# 3. User Input
+user_text = st.text_input("Describe your mood:", placeholder="e.g., Today was such a tiring but good day...")
 
-        # Header
-        self.label = ctk.CTkLabel(self, text="MoodSync AI", font=("Helvetica", 26, "bold"))
-        self.label.pack(pady=30)
-
-        # Input Box
-        self.entry = ctk.CTkEntry(self, placeholder_text="Tell me how you feel...", width=380, height=45)
-        self.entry.pack(pady=10)
-
-        # Action Button
-        self.button = ctk.CTkButton(self, text="Sync My Music 🎵", font=("Helvetica", 14, "bold"), height=40, command=self.process_mood)
-        self.button.pack(pady=20)
-
-        # Result Display
-        self.result_label = ctk.CTkLabel(self, text="", font=("Helvetica", 18))
-        self.result_label.pack(pady=10)
-
-        # Status Display
-        self.status_label = ctk.CTkLabel(self, text="", font=("Helvetica", 12), text_color="gray")
-        self.status_label.pack(pady=5)
-
-    def save_to_diary(self, user_input, mood):
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        entry = f"[{now}] Input: {user_input} | Mood: {mood}\n"
-        with open("mood_diary.txt", "a", encoding="utf-8") as file:
-            file.write(entry)
-
-    def process_mood(self):
-        user_text = self.entry.get()
-        if not user_text.strip():
-            return
-
-        self.result_label.configure(text="Analyzing...", text_color="white")
-        self.update_idletasks()
-
-        # Get the mood from Gemini (brain.py)
-        detected_mood = brain.get_mood(user_text)
-
+# 4. Logic
+if st.button("Sync My Vibe"):
+    if user_text:
+        with st.spinner("AI is analyzing your vibe..."):
+            # This calls your brain.py file
+            detected_mood = brain.get_mood(user_text)
+            
         if "ERROR" in detected_mood:
-            self.result_label.configure(text="Connection Error!", text_color="red")
+            st.error("Check your Gemini API Key in the Settings -> Secrets!")
         else:
-            self.result_label.configure(text=f"Mood: {detected_mood}", text_color="#1DB954")
+            st.success(f"Detected Mood: {detected_mood}")
             
-            # This plays the Tamil songs via player.py
-            player.play_mood(detected_mood)
+            # Tamil Playlist Search Terms
+            queries = {
+                "SAD": "Tamil Sad Melodies",
+                "HEART BROKEN": "Tamil Breakup Songs Love Failure",
+                "LOVE": "Tamil Romantic Hits Melody",
+                "ITEM": "Tamil Item Songs Kuthu Songs", 
+                "LONELY": "Tamil Lonely Melodies Midnight Mix"
+            }
             
-            # Save the record
-            self.save_to_diary(user_text, detected_mood)
-            self.status_label.configure(text="Diary updated successfully.")
+            query = queries.get(detected_mood, "Latest Tamil Hits 2026")
+            encoded_query = urllib.parse.quote(query)
+            spotify_url = f"https://open.spotify.com/search/{encoded_query}"
             
-            # Reset input field
-            self.entry.delete(0, 'end')
-
-if __name__ == "__main__":
-    app = MoodSyncApp()
-    app.mainloop()
+            # Interaction
+            if detected_mood in ["LOVE", "HAPPY"]:
+                st.balloons()
+            
+            st.link_button(f"Click to Listen to {detected_mood} Songs 🎧", spotify_url)
+            
+            # Save to a local diary file on the server (Optional)
+            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            with open("mood_diary.txt", "a", encoding="utf-8") as f:
+                f.write(f"[{now}] {user_text} -> {detected_mood}\n")
+    else:
+        st.warning("Please type something first!")
