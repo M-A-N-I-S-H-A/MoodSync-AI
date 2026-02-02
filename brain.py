@@ -1,7 +1,7 @@
 import google.genai as genai
 
 # Setup - Paste your Gemini API Key here
-client = genai.Client(api_key="AIzaSyBNxO5PtbuOcWwsj8_LJuICxfgPb3-VR30")
+client = genai.Client(api_key="Paste your Gemini API Key here")
 
 def get_mood(user_text):
     try:
