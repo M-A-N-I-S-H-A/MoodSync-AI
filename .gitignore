@@ -1,5 +1,0 @@
-# Ignore API Keys and private info
-.env
-mood_diary.txt
-__pycache__/
-*.pyc
